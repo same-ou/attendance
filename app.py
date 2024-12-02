@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, redirect, url_for
+from flask import Flask, render_template, Response, redirect, url_for, send_file
 import cv2
 import face_recognition
 import os
@@ -12,6 +12,8 @@ app = Flask(__name__)
 path = './student images'
 encodings_file = './face_encodings.pkl'
 attendance_path = './Attendance.csv'
+
+camera_running = True  # State for Play/Stop camera
 
 # Encoding the images
 def findEncodings(images):
@@ -63,8 +65,9 @@ def markAttendance(name):
 
 # Video Stream Generator
 def generate_frames():
+    global camera_running
     cap = cv2.VideoCapture(0)
-    while True:
+    while camera_running:
         success, img = cap.read()
         if not success:
             break
@@ -87,16 +90,27 @@ def generate_frames():
                 cv2.putText(img, name, (x1 + 6, y2 - 5), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
                 markAttendance(name)
 
-        # Convert to byte stream for Flask
         _, buffer = cv2.imencode('.jpg', img)
         frame = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    cap.release()
 
 # Flask Routes
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/start_camera', methods=['POST'])
+def start_camera():
+    global camera_running
+    camera_running = True
+    return redirect(url_for('index'))
+
+@app.route('/stop_camera', methods=['POST'])
+def stop_camera():
+    global camera_running
+    camera_running = False
+    return redirect(url_for('index'))
 
 @app.route('/video_feed')
 def video_feed():
@@ -105,10 +119,22 @@ def video_feed():
 @app.route('/attendance')
 def attendance():
     attendance_records = []
+    today = datetime.now().strftime('%d-%B-%Y')
     with open(attendance_path, 'r') as f:
         for line in f.readlines():
             attendance_records.append(line.strip().split(','))
-    return render_template('attendance.html', attendance_records=attendance_records)
+    return render_template('attendance.html', attendance_records=attendance_records, class_name="Master Big Data & IoT", date=today)
+
+@app.route('/reset_attendance', methods=['POST'])
+def reset_attendance():
+    with open(attendance_path, 'w') as f:
+        f.write("Name, Time, Date")
+    return redirect(url_for('attendance'))
+
+@app.route('/download_attendance', methods=['GET'])
+def download_attendance():
+    today = datetime.now().strftime('%d-%B-%Y')
+    return send_file(attendance_path, as_attachment=True, download_name=f'MBDIOT-{today}.csv')
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>Attendance Records</h1>
+    <p>Class: {{ class_name }}</p>
+    <p>Date: {{ date }}</p>
     <table border="1">
         <tr>
             <th>Name</th>
@@ -21,6 +24,10 @@
         </tr>
         {% endfor %}
     </table>
+    <form method="post" action="/reset_attendance">
+        <button type="submit">Reset Attendance</button>
+    </form>
+    <a href="/download_attendance">Download Attendance</a>
     <a href="/">Go Back</a>
 </body>
 </html>
