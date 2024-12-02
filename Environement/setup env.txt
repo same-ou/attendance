@@ -1,0 +1,37 @@
+Steps to Recreate the Environment
+Install Miniconda or Anaconda:
+
+If you don’t already have conda installed on your new laptop, download and install Miniconda or Anaconda:
+Miniconda: https://docs.conda.io/en/latest/miniconda.html
+Anaconda: https://www.anaconda.com/products/distribution
+Navigate to the Project Directory:
+
+Open a terminal or command prompt.
+Navigate to the directory where your attendance_env.yml file is located using:
+bash
+Copy code
+cd path/to/attendance_env.yml
+Create the Environment:
+
+Run the following command to create the environment from the .yml file:
+bash
+Copy code
+conda env create -f attendance_env.yml
+Activate the Environment:
+
+After the environment is created, activate it using:
+bash
+Copy code
+conda activate attendance_env
+Verify the Environment:
+
+Check if the environment is set up correctly by listing all installed packages:
+bash
+Copy code
+conda list
+Run Your Project:
+
+Once the environment is active, you can run your Python scripts, such as your face recognition system, using the Python version and dependencies provided by the environment.
+bash
+Copy code
+python app.py

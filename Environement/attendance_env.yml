@@ -1,0 +1,39 @@
+name: attendance_env
+channels:
+  - defaults
+dependencies:
+  - bzip2=1.0.8=h2bbff1b_6
+  - ca-certificates=2024.11.26=haa95532_0
+  - libffi=3.4.4=hd77b12b_1
+  - openssl=1.1.1w=h2bbff1b_0
+  - pip=24.2=py310haa95532_0
+  - python=3.10.0=h96c0403_3
+  - setuptools=75.1.0=py310haa95532_0
+  - sqlite=3.45.3=h2bbff1b_0
+  - tk=8.6.14=h0416ee5_0
+  - vc=14.40=h2eaa2aa_1
+  - vs2015_runtime=14.40.33807=h98bb1dd_1
+  - wheel=0.44.0=py310haa95532_0
+  - xz=5.4.6=h8cc25b3_1
+  - zlib=1.2.13=h8cc25b3_1
+  - pip:
+      - blinker==1.9.0
+      - click==8.1.7
+      - colorama==0.4.6
+      - dlib==19.24.6
+      - face-recognition==1.3.0
+      - face-recognition-models==0.3.0
+      - flask==3.1.0
+      - itsdangerous==2.2.0
+      - jinja2==3.1.4
+      - markupsafe==3.0.2
+      - numpy==2.1.3
+      - opencv-python==4.10.0.84
+      - pandas==2.2.3
+      - pillow==11.0.0
+      - python-dateutil==2.9.0.post0
+      - pytz==2024.2
+      - six==1.16.0
+      - tzdata==2024.2
+      - werkzeug==3.1.3
+prefix: C:\Users\DELL\anaconda3\envs\attendance_env
