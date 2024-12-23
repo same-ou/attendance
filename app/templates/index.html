@@ -8,14 +8,23 @@
 </head>
 <body>
     <h1>Face Recognition Attendance System</h1>
-    <img src="{{ url_for('video_feed') }}" alt="Video Feed" width="640" height="480">
-    <form method="post" action="/start_camera">
+    
+    <!-- Video Feed -->
+    <img src="{{ url_for('video.video_feed') }}" alt="Video Feed" width="640" height="480">
+
+    <!-- Start Camera Form -->
+    <form method="post" action="{{ url_for('camera_control.start_camera') }}">
         <button type="submit">Start Camera</button>
     </form>
-    <form method="post" action="/stop_camera">
+
+    <!-- Stop Camera Form -->
+    <form method="post" action="{{ url_for('camera_control.stop_camera') }}">
         <button type="submit">Stop Camera</button>
     </form>
+
     <br>
-    <a href="/attendance">View Attendance</a>
+
+    <!-- View Attendance Link -->
+    <a href="{{ url_for('attendance.attendance') }}">View Attendance</a>
 </body>
 </html>

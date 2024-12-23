@@ -24,10 +24,16 @@
         </tr>
         {% endfor %}
     </table>
-    <form method="post" action="/reset_attendance">
+    
+    <!-- Reset Attendance Form -->
+    <form method="post" action="{{ url_for('attendance.reset_attendance') }}">
         <button type="submit">Reset Attendance</button>
     </form>
-    <a href="/download_attendance">Download Attendance</a>
-    <a href="/">Go Back</a>
+
+    <!-- Download Attendance Link -->
+    <a href="{{ url_for('attendance.download_attendance') }}">Download Attendance</a>
+
+    <!-- Go Back Link -->
+    <a href="{{ url_for('attendance.attendance') }}">Go Back</a>
 </body>
 </html>
