@@ -161,6 +161,10 @@ def generate_frames():
     cap = cv2.VideoCapture(0)
 
     while True:
+        if not camera_control.camera_running:  # Stop generating frames if the camera is not running
+            cap.release()
+            break
+
         success, img = cap.read()
         if not success:
             break
