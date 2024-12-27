@@ -151,12 +151,18 @@ def show_alert(message):
     print(message)  # You can replace this with a real alert system, e.g., a UI popup
     # Optionally, you can set a timer to auto-close this alert after a few seconds
 
-# Video Stream Generator
-def generate_frames():
-    global frame_counter, recognition_start_time
+# Global variable to track if encodings are already loaded
+encodings_loaded = False
 
-    # Load known faces at the beginning of the stream (This will check for changes and update encodings if needed)
-    encoded_face_train, classNames = load_encodings()
+def generate_frames():
+    global frame_counter, recognition_start_time, encoded_face_train, classNames, encodings_loaded
+
+    # Load known faces only the first time
+    if not encodings_loaded:
+        print("Loading encodings...")
+        encoded_face_train, classNames = load_encodings()
+        encodings_loaded = True
+        print("Encodings loaded successfully.")
 
     cap = cv2.VideoCapture(0)
 
@@ -188,4 +194,5 @@ def generate_frames():
         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
     cap.release()
+
 
