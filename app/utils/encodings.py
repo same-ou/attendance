@@ -3,7 +3,7 @@ import face_recognition
 import os
 import pickle
 import numpy as np
-from app.utils.attendance import mark_attendance  # Assuming this function is defined in attendance.py
+from app.utils.attendance import mark_attendance  
 import app.routes.camera_control as camera_control
 from collections import defaultdict
 
@@ -18,31 +18,31 @@ encoded_face_train, classNames = None, None
 
 # Track persistent recognition (across multiple frames)
 face_recognition_history = defaultdict(int)
-recognition_threshold = 20  # Number of consecutive frames needed for a valid recognition
+recognition_threshold = 120  # Number of consecutive frames needed for a valid recognition
 
-# Function to check if student images have changed
 def images_changed():
-    last_mod_time = get_latest_image_mod_time()
+    # Get the modification time of the student images folder
+    folder_mod_time = os.path.getmtime(STUDENT_IMAGES_PATH)
+    
+    # Check if the modification time of the folder is newer than the encodings file
     if os.path.exists(ENCODINGS_FILE):
         encodings_mod_time = os.path.getmtime(ENCODINGS_FILE)
-        return last_mod_time > encodings_mod_time
+        if folder_mod_time <= encodings_mod_time:
+            return False
+    
     return True
-
-# Function to get the latest modification time of student images
-def get_latest_image_mod_time():
-    return max(os.path.getmtime(os.path.join(STUDENT_IMAGES_PATH, f)) for f in os.listdir(STUDENT_IMAGES_PATH))
 
 # Function to load existing encodings from pickle files
 def load_existing_encodings():
-    global encoded_face_train, classNames
     with open(ENCODINGS_FILE, 'rb') as f:
         encoded_face_train = pickle.load(f)
     with open(NAMES_FILE, 'rb') as name_file:
-        classNames = pickle.load(name_file)
+        class_names = pickle.load(name_file)
     print("Existing encodings loaded.")
+    return encoded_face_train, class_names
 
 # Function to save new encodings to pickle files
-def save_encodings(images, class_names, encoded_face_train):
+def save_encodings(class_names, encoded_face_train):
     with open(ENCODINGS_FILE, 'wb') as f:
         pickle.dump(encoded_face_train, f)
     with open(NAMES_FILE, 'wb') as f:
@@ -58,19 +58,15 @@ def find_encodings(images):
         encode_list.append(encoded_face)
     return encode_list
 
-# Function to load or create encodings based on image folder changes
 def load_encodings():
-    global encoded_face_train, classNames
-
     if images_changed():
         print("Images have changed, generating new encodings...")
         images, class_names = load_student_images()
         encoded_face_train = find_encodings(images)
-        save_encodings(images, class_names, encoded_face_train)
+        save_encodings(class_names, encoded_face_train)
     else:
-        load_existing_encodings()
-
-    return encoded_face_train, classNames
+        encoded_face_train, class_names = load_existing_encodings()
+    return encoded_face_train, class_names
 
 # Function to load student images and class names from the images folder
 def load_student_images():
@@ -82,6 +78,7 @@ def load_student_images():
         images.append(cur_img)
         class_names.append(os.path.splitext(cl)[0])
     return images, class_names
+
 
 # Function to handle face detection and recognition in the video stream
 def detect_faces_in_frame(img, encoded_face_train, classNames):
