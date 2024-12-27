@@ -13,7 +13,7 @@ ENCODINGS_FILE = 'app/data/face_encodings.pkl'
 NAMES_FILE = 'app/data/face_encodings_names.pkl'
 ATTENDANCE_PATH = 'instance/Attendance.csv'
 
-# Global variables for storing encodings and class names
+# Global variables for storing the encodings and class names
 encoded_face_train, classNames = None, None
 
 # Track persistent recognition (across multiple frames)
