@@ -9,10 +9,22 @@ def attendance():
     attendance_records = []
     today = datetime.now().strftime('%d-%B-%Y')
     attendance_path = current_app.config['ATTENDANCE_CSV']
+    
+    # Check if the file exists
+    if not os.path.exists(attendance_path):
+        # Create the file with a header
+        with open(attendance_path, 'w') as f:
+            f.write("Student Name,Date,Status\n")
+    
+    # Read the file content
     with open(attendance_path, 'r') as f:
         for line in f.readlines():
             attendance_records.append(line.strip().split(','))
-    return render_template('attendance.html', attendance_records=attendance_records, class_name="Master Big Data & IoT", date=today)
+
+    return render_template('attendance.html', 
+                           attendance_records=attendance_records, 
+                           class_name="Master Big Data & IoT", 
+                           date=today)
 
 @bp.route('/reset_attendance', methods=['POST'])
 def reset_attendance():
