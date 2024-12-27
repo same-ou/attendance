@@ -1,7 +1,6 @@
 import cv2
 import face_recognition
 import os
-import time
 import pickle
 import numpy as np
 from app.utils.attendance import mark_attendance  # Assuming this function is defined in attendance.py
@@ -16,7 +15,10 @@ ATTENDANCE_PATH = 'instance/Attendance.csv'
 
 # Global variables for storing encodings and class names
 encoded_face_train, classNames = None, None
-frame_counter = 0  # Initialize frame counter
+
+# Track persistent recognition (across multiple frames)
+face_recognition_history = defaultdict(int)
+recognition_threshold = 20  # Number of consecutive frames needed for a valid recognition
 
 # Function to check if student images have changed
 def images_changed():
@@ -89,7 +91,6 @@ def detect_faces_in_frame(img, encoded_face_train, classNames):
     encoded_faces = face_recognition.face_encodings(imgS, faces_in_frame)
     return faces_in_frame, encoded_faces
 
-
 # Function to draw a box and label around the detected face
 def draw_face_box(faceloc, img, name):
     y1, x2, y2, x1 = faceloc
@@ -98,50 +99,40 @@ def draw_face_box(faceloc, img, name):
     cv2.rectangle(img, (x1, y2 - 35), (x2, y2), (0, 255, 0), cv2.FILLED)
     cv2.putText(img, name, (x1 + 6, y2 - 5), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
 
+# Function to display advice on the frame (when face is detected)
+def display_advice(img, message):
+    cv2.putText(img, message, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
 
-recognition_start_time = None  # To track the start time of recognition session
-
-# Store recognized faces globally, with frame count for how long they have been seen
-face_recognition_history = defaultdict(int)
-
-# Function to process and track face recognition over 5 seconds
+# Function to process and track face recognition
 def process_face_matches(encoded_faces, faces_in_frame, encoded_face_train, classNames, img):
-    global face_recognition_history, recognition_start_time
-
     current_recognized_faces = []
+    
+    if not faces_in_frame:
+        display_advice(img, "No face detected. Please stand in front of the camera.")
+        return
 
     # Process each face and recognize it
     for encode_face, faceloc in zip(encoded_faces, faces_in_frame):
-        matches = face_recognition.compare_faces(encoded_face_train, encode_face)
         faceDist = face_recognition.face_distance(encoded_face_train, encode_face)
         matchIndex = np.argmin(faceDist)
+        is_recognized = faceDist[matchIndex] < 0.6  # Confidence threshold for recognition
 
-        if matches[matchIndex]:
-            most_confident_face = classNames[matchIndex].upper()
+        if is_recognized:
+            name = classNames[matchIndex].upper()
+            current_recognized_faces.append((name, faceloc))
+            
+            # Track persistent recognition
+            face_recognition_history[name] += 1
+            if face_recognition_history[name] >= recognition_threshold:
+                mark_attendance(name, ATTENDANCE_PATH)
+                show_alert(f"{name} is registered.")
+                face_recognition_history.clear()  # Reset after marking attendance
+        else:
+            name = "Unknown"
+            display_advice(img, "Please center your face and stand straight.")
+            current_recognized_faces.append((name, faceloc))
 
-            # Add face to the current recognized faces list
-            current_recognized_faces.append((most_confident_face, faceloc))
-
-            # Increment recognition count for this face
-            face_recognition_history[most_confident_face] += 1
-
-    # After 5 seconds, select the most persistent face (the one that appeared the most)
-    if recognition_start_time and (time.time() - recognition_start_time) >= 5:
-        if current_recognized_faces:
-            most_persistent_face = max(current_recognized_faces, key=lambda x: face_recognition_history[x[0]])
-
-            name, faceloc = most_persistent_face
-            draw_face_box(faceloc, img, name)
-
-            # Mark attendance and show alert
-            mark_attendance(name, 'instance/Attendance.csv')  # Assuming attendance file path
-            show_alert(f"{name} is registered")
-
-            # Reset the recognition history and end the session
-            face_recognition_history.clear()
-            recognition_start_time = None  # Reset the session timer
-
-    # Keep the bounding box visible for the recognized faces
+    # Draw bounding box and label for recognized faces
     for recognized_face in current_recognized_faces:
         name, faceloc = recognized_face
         draw_face_box(faceloc, img, name)
@@ -149,13 +140,12 @@ def process_face_matches(encoded_faces, faces_in_frame, encoded_face_train, clas
 # Function to display alert
 def show_alert(message):
     print(message)  # You can replace this with a real alert system, e.g., a UI popup
-    # Optionally, you can set a timer to auto-close this alert after a few seconds
 
 # Global variable to track if encodings are already loaded
 encodings_loaded = False
 
 def generate_frames():
-    global frame_counter, recognition_start_time, encoded_face_train, classNames, encodings_loaded
+    global encoded_face_train, classNames, encodings_loaded
 
     # Load known faces only the first time
     if not encodings_loaded:
@@ -175,16 +165,7 @@ def generate_frames():
         if not success:
             break
 
-        # Increment the frame counter
-        frame_counter += 1
-
-        # Start a recognition session for 5 seconds when the camera detects a face
-        if recognition_start_time is None:  # Start a session when first face is detected
-            faces_in_frame, encoded_faces = detect_faces_in_frame(img, encoded_face_train, classNames)
-            if faces_in_frame:  # If faces are detected, start the session
-                recognition_start_time = time.time()
-
-        # Process face recognition every frame, keep bounding box visible
+        # Detect faces and process recognition
         faces_in_frame, encoded_faces = detect_faces_in_frame(img, encoded_face_train, classNames)
         process_face_matches(encoded_faces, faces_in_frame, encoded_face_train, classNames, img)
 
@@ -194,5 +175,3 @@ def generate_frames():
         yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
     cap.release()
-
-
