@@ -1,0 +1,35 @@
+name: attendance_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - bzip2=1.0.8
+  - ca-certificates=2024.11.26
+  - libffi=3.4.4
+  - openssl=1.1.1w
+  - python=3.10.0
+  - setuptools=75.1.0
+  - sqlite=3.45.3
+  - wheel=0.44.0
+  - xz=5.4.6
+  - pip:
+      - blinker==1.9.0
+      - click==8.1.7
+      - colorama==0.4.6
+      - dlib==19.24.6
+      - face-recognition==1.3.0
+      - face-recognition-models==0.3.0
+      - flask==3.1.0
+      - itsdangerous==2.2.0
+      - jinja2==3.1.4
+      - markupsafe==3.0.2
+      - numpy==2.1.3
+      - opencv-python==4.10.0.84
+      - pandas==2.2.3
+      - pillow==11.0.0
+      - python-dateutil==2.9.0.post0
+      - pytz==2024.2
+      - six==1.16.0
+      - tzdata==2024.2
+      - werkzeug==3.1.3
